@@ -55,6 +55,7 @@ ENV PYTHON_PATH=/usr/local/bin/ \
       xz-dev \
       zlib-dev \
       git \
+      python-virtualenv \
     "
 
 RUN set -ex ;\
@@ -104,9 +105,15 @@ RUN set -ex ;\
     # remove build dependencies and any leftover apk cache
     apk del --no-cache --purge .build-deps ;\
     rm -rf /var/cache/apk/*
-
+ 
+RUN python2 -m virtualenv venv
+RUN pip install Flask
+RUN pip install  MySQL-python
+RUN pip install  mysql-connector-python
+RUN pip install  pymysql
+RUN pip install  gunicorn>=19.7.1
 # since we will be "always" mounting the volume, we can set this up
-ENTRYPOINT ["/usr/bin/dumb-init"]
+#ENTRYPOINT ["/usr/bin/dumb-init"]
+COPY app.py .
 
-
-CMD [ "python", "./application.py" ]
+CMD [ "gunicorn", "-w 1 -b :3000 app:server" ]  
